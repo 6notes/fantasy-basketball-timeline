@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fantasy_hoops
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/fantasy_hoops
+      YAHOO_CLIENT_ID: ${YAHOO_CLIENT_ID}
+      YAHOO_CLIENT_SECRET: ${YAHOO_CLIENT_SECRET}
+      REDIRECT_URI: ${REDIRECT_URI:-http://localhost:5173/auth/callback}
+      SESSION_SECRET: ${SESSION_SECRET:-changeme}
+    depends_on:
+      - db
+    volumes:
+      - ./prisma:/app/prisma
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
