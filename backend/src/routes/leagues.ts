@@ -13,18 +13,22 @@ app.get("/", async (c) => {
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return c.json({ error: "User not found" }, 404);
 
-  const data = (await fetchYahooAPI(
-    user.accessToken,
-    "/users;use_login=1/games;game_codes=nba/leagues"
-  )) as {
+  type LeagueEntry = { league: [{ league_key: string; name: string; season: string }] };
+  type GameEntry = { game: [unknown, { leagues: { [key: string]: LeagueEntry } }] };
+  type YahooLeaguesResponse = {
     fantasy_content: {
       users: {
         "0": {
-          user: [unknown, { games: { [key: string]: { game: [unknown, { leagues: { [key: string]: { league: [{ league_key: string; name: string; season: string }] } } }] } } }] };
+          user: [unknown, { games: { [key: string]: GameEntry } }];
         };
       };
     };
   };
+
+  const data = (await fetchYahooAPI(
+    user.accessToken,
+    "/users;use_login=1/games;game_codes=nba/leagues"
+  )) as YahooLeaguesResponse;
 
   const gamesObj =
     data.fantasy_content.users["0"].user[1].games;

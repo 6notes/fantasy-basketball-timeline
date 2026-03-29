@@ -2,5 +2,9 @@ node_modules/
 .env
 dist/
 prisma/migrations/
+# Playwright
+test-results/
+playwright-report/
+
 # Mac directory config file
 *.DS_Store

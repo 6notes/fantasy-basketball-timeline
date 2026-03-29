@@ -53,17 +53,27 @@ app.post("/:teamKey/sync", async (c) => {
   const user = await db.user.findUnique({ where: { id: userId } });
   if (!user) return c.json({ error: "User not found" }, 404);
 
-  const data = (await fetchYahooAPI(
-    user.accessToken,
-    `/team/${teamKey}/roster/players`
-  )) as {
+  type PlayerInfo = {
+    player_key: string;
+    full_name: string;
+    display_position: string;
+    editorial_team_abbr: string;
+    status?: string;
+    image_url?: string;
+  };
+  type YahooTeamResponse = {
     fantasy_content: {
       team: [
         [{ team_key: string; name: string; league_key: string }],
-        { roster: { "0": { players: { [key: string]: { player: [{ player_key: string; full_name: string; display_position: string; editorial_team_abbr: string; status?: string; image_url?: string }] } } } } } }
+        { roster: { "0": { players: { [key: string]: { player: [PlayerInfo] } } } } }
       ];
     };
   };
+
+  const data = (await fetchYahooAPI(
+    user.accessToken,
+    `/team/${teamKey}/roster/players`
+  )) as YahooTeamResponse;
 
   const [teamInfo, rosterWrapper] = data.fantasy_content.team;
   const { name: teamName, league_key: leagueKey } = teamInfo[0];
