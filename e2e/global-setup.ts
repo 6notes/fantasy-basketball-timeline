@@ -1,5 +1,15 @@
 import { execSync } from "child_process";
 
+function runCheck(label: string, command: string) {
+  console.log(`Running ${label}...`);
+  try {
+    execSync(command, { stdio: "inherit" });
+    console.log(`${label} passed.`);
+  } catch {
+    throw new Error(`${label} failed. Fix the issues above before running e2e tests.`);
+  }
+}
+
 async function waitForUrl(url: string, timeoutMs = 120_000) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -13,6 +23,9 @@ async function waitForUrl(url: string, timeoutMs = 120_000) {
 }
 
 export default async function globalSetup() {
+  runCheck("ESLint", "npm run lint");
+  runCheck("Prettier", "npm run format:check");
+
   console.log("Tearing down existing containers...");
   execSync("docker compose down -v", { stdio: "inherit" });
 

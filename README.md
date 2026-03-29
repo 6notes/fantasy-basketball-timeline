@@ -108,12 +108,16 @@ This will:
 
 </summary>
 
-| Command            | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| `npm run dev`      | Start all services via Docker                         |
-| `npm run migrate`  | Run Prisma DB migrations inside the backend container |
-| `npm run down`     | Stop and remove containers                            |
-| `npm run logs`     | Tail logs from all containers                         |
-| `npm run test:e2e` | Run Playwright e2e tests against a fresh environment  |
+| Command                | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `npm run dev`          | Start all services via Docker                         |
+| `npm run migrate`      | Run Prisma DB migrations inside the backend container |
+| `npm run down`         | Stop and remove containers                            |
+| `npm run logs`         | Tail logs from all containers                         |
+| `npm run test:e2e`     | Run Playwright e2e tests against a fresh environment  |
+| `npm run lint`         | Check for ESLint errors                               |
+| `npm run lint:fix`     | Auto-fix ESLint errors                                |
+| `npm run format`       | Format all files with Prettier                        |
+| `npm run format:check` | Check formatting without writing changes              |
 
 </details>

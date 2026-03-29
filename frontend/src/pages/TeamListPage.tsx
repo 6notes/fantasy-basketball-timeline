@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Button,
-  Card,
-  Heading,
-  SimpleGrid,
-  Skeleton,
-  Stack,
-  Text,
-} from "@chakra-ui/react";
+import { Button, Card, Heading, SimpleGrid, Skeleton, Stack, Text } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { useTeams, useSyncTeam } from "../hooks/useTeams";
 import type { League } from "../types";
@@ -25,14 +16,12 @@ function TeamCard({ team }: { team: League & { teamKey?: string; name?: string }
             {team.name} — {team.season}
           </Text>
           <Stack direction="row" gap={2}>
-            <Button as={Link} to={`/team/${teamKey}`} size="sm" variant="outline">
-              View Roster
-            </Button>
-            <Button
-              size="sm"
-              loading={sync.isPending}
-              onClick={() => sync.mutate()}
-            >
+            <Link to={`/team/${teamKey}`}>
+              <Button size="sm" variant="outline">
+                View Roster
+              </Button>
+            </Link>
+            <Button size="sm" loading={sync.isPending} onClick={() => sync.mutate()}>
               Sync
             </Button>
           </Stack>

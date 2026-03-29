@@ -1,14 +1,26 @@
 {
   "name": "fantasy-hoops",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "docker compose up --build",
     "migrate": "docker compose exec backend npx prisma migrate dev --name init",
     "down": "docker compose down",
     "logs": "docker compose logs -f",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.0.0",
+    "prettier": "^3.3.0",
+    "typescript-eslint": "^8.0.0"
   }
 }

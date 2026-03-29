@@ -1,12 +1,4 @@
-import {
-  Badge,
-  Button,
-  Heading,
-  Skeleton,
-  Stack,
-  Table,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Button, Heading, Skeleton, Stack, Table, Text } from "@chakra-ui/react";
 import { Link, useParams } from "react-router-dom";
 import { useTeam } from "../hooks/useTeam";
 import { useSyncTeam } from "../hooks/useTeams";
@@ -55,9 +47,7 @@ export function TeamPage() {
             {latestSnapshot.entries.map((entry: RosterEntry) => (
               <Table.Row key={entry.id}>
                 <Table.Cell>
-                  <Link to={`/player/${entry.player.playerKey}`}>
-                    {entry.player.name}
-                  </Link>
+                  <Link to={`/player/${entry.player.playerKey}`}>{entry.player.name}</Link>
                 </Table.Cell>
                 <Table.Cell>{entry.player.position}</Table.Cell>
                 <Table.Cell>{entry.player.nbaTeam}</Table.Cell>
@@ -68,7 +58,7 @@ export function TeamPage() {
           </Table.Body>
         </Table.Root>
       ) : (
-        <Text color="fg.muted">No roster data. Click "Sync Roster" to load.</Text>
+        <Text color="fg.muted">{'No roster data. Click "Sync Roster" to load.'}</Text>
       )}
     </Stack>
   );

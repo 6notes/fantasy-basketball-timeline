@@ -1,13 +1,4 @@
-import {
-  Badge,
-  Button,
-  Heading,
-  Image,
-  Skeleton,
-  Stack,
-  Table,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Button, Heading, Image, Skeleton, Stack, Table, Text } from "@chakra-ui/react";
 import { useParams } from "react-router-dom";
 import { usePlayer, usePlayerStats, useSyncPlayerStats } from "../hooks/usePlayer";
 import { StatChart } from "../components/players/StatChart";
@@ -78,15 +69,19 @@ export function PlayerPage() {
                   <Table.Cell>{s.blk ?? "—"}</Table.Cell>
                   <Table.Cell>{s.tov ?? "—"}</Table.Cell>
                   <Table.Cell>{s.threepm ?? "—"}</Table.Cell>
-                  <Table.Cell>{s.fgPct != null ? `${(s.fgPct * 100).toFixed(1)}%` : "—"}</Table.Cell>
-                  <Table.Cell>{s.ftPct != null ? `${(s.ftPct * 100).toFixed(1)}%` : "—"}</Table.Cell>
+                  <Table.Cell>
+                    {s.fgPct != null ? `${(s.fgPct * 100).toFixed(1)}%` : "—"}
+                  </Table.Cell>
+                  <Table.Cell>
+                    {s.ftPct != null ? `${(s.ftPct * 100).toFixed(1)}%` : "—"}
+                  </Table.Cell>
                 </Table.Row>
               ))}
             </Table.Body>
           </Table.Root>
         </>
       ) : (
-        <Text color="fg.muted">No stats yet. Click "Sync Stats" to load.</Text>
+        <Text color="fg.muted">{'No stats yet. Click "Sync Stats" to load.'}</Text>
       )}
     </Stack>
   );
