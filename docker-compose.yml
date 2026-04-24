@@ -26,6 +26,7 @@ services:
       - db
     volumes:
       - ./prisma:/app/prisma
+      - ./backend/src:/app/src
 
   frontend:
     build: ./frontend
@@ -35,6 +36,8 @@ services:
       VITE_API_URL: ${VITE_API_URL:-http://localhost:3000}
     depends_on:
       - backend
+    volumes:
+      - ./frontend/src:/app/src
 
 volumes:
   pgdata:

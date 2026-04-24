@@ -1,10 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getLeagues, syncTeam } from "../lib/api";
+import { getTeams, syncTeam, syncAllTeams } from "../lib/api";
 
 export function useTeams() {
   return useQuery({
     queryKey: ["teams"],
-    queryFn: getLeagues,
+    queryFn: getTeams,
+  });
+}
+
+export function useSyncAllTeams() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: syncAllTeams,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["teams"] }),
   });
 }
 

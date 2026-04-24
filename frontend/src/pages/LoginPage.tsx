@@ -1,5 +1,5 @@
 import { Button, Card, Heading, Stack, Text } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
@@ -7,36 +7,40 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const apiUrl = import.meta.env.VITE_API_URL;
+  const handledRef = useRef(false);
 
   useEffect(() => {
     const code = searchParams.get("code");
     const state = searchParams.get("state");
 
     if (!code || !state) return;
+    if (handledRef.current) return;
+    handledRef.current = true;
 
     const storedState = localStorage.getItem("oauth_state");
-    const codeVerifier = localStorage.getItem("oauth_code_verifier");
 
-    if (state !== storedState || !codeVerifier) {
+    if (state !== storedState) {
       console.error("OAuth state mismatch");
       return;
     }
 
     axios
       .get(`${apiUrl}/auth/callback`, {
-        params: {
-          code,
-          state,
-          stored_state: storedState,
-          code_verifier: codeVerifier,
-        },
+        params: { code, state, stored_state: storedState },
       })
       .then((res) => {
         localStorage.setItem("userId", res.data.userId);
         localStorage.removeItem("oauth_state");
-        localStorage.removeItem("oauth_code_verifier");
-        navigate("/");
+        const userId = res.data.userId;
+        return axios
+          .get(`${apiUrl}/api/leagues`, { headers: { "x-user-id": userId } })
+          .then(() =>
+            axios.post(`${apiUrl}/api/teams/sync-all`, null, {
+              headers: { "x-user-id": userId },
+            })
+          );
       })
+      .then(() => navigate("/"))
       .catch(console.error);
   }, [searchParams, apiUrl, navigate]);
 
@@ -61,7 +65,7 @@ export function LoginPage() {
             <Text color="fg.muted">
               Connect your Yahoo Fantasy account to get started.
             </Text>
-            <Button onClick={handleLogin} w="full" size="lg">
+            <Button onClick={handleLogin} w="full" size="lg" colorPalette="blue">
               Login with Yahoo
             </Button>
           </Stack>

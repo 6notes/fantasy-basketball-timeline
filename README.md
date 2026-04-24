@@ -32,11 +32,29 @@ YAHOO_CLIENT_SECRET=your_client_secret_here
 
 Everything else can stay as the defaults for local dev.
 
-### 2. Start Docker
+### 2. Set up ngrok
+
+Yahoo OAuth requires a public HTTPS redirect URI — `localhost` URLs are not accepted.
+
+1. Install [ngrok](https://ngrok.com/) and create a free account
+2. Start a tunnel on the frontend port:
+   ```bash
+   ngrok http 5173
+   ```
+3. Copy the ngrok URL (e.g. `https://your-subdomain.ngrok-free.app`)
+4. Set it in `.env`:
+   ```
+   REDIRECT_URI=https://your-subdomain.ngrok-free.app/auth/callback
+   ```
+5. In your [Yahoo Developer app](https://developer.yahoo.com), set the Redirect URI to the same value
+
+> Note: Free ngrok URLs change on restart. Update `.env` and your Yahoo app each time.
+
+### 3. Start Docker
 
 Open Docker Desktop and make sure it's running before proceeding.
 
-### 3. Start the app
+### 4. Start the app
 
 ```bash
 npm run dev
@@ -45,16 +63,18 @@ npm run dev
 This runs `docker compose up --build`. On first run it will build the containers
 and pull dependencies.
 
-### 4. Run database migrations (first time only)
+### 5. Run database migrations (first time only)
 
 ```bash
 npm run migrate
 ```
 
-### 5. Open the app
+### 6. Open the app
 
-- Frontend: http://localhost:5173
+- Frontend: your ngrok URL (e.g. `https://your-subdomain.ngrok-free.app`) — use this for login
 - Backend API: http://localhost:3000
+
+> Important: Always open the app via the ngrok URL, not `localhost:5173`. Yahoo redirects back to the ngrok URL after login, and the OAuth state is stored in localStorage scoped to that origin. Using `localhost` will cause a "Missing parameters" error during the callback.
 
 </details>
 

@@ -17,6 +17,10 @@ export function getLeagues(): Promise<League[]> {
   return api.get<League[]>("/api/leagues").then((r) => r.data);
 }
 
+export function getTeams(): Promise<Team[]> {
+  return api.get<Team[]>("/api/teams").then((r) => r.data);
+}
+
 export function getTeam(teamKey: string): Promise<Team & { rosterSnapshots: RosterSnapshot[] }> {
   return api.get(`/api/teams/${teamKey}`).then((r) => r.data);
 }
@@ -27,6 +31,10 @@ export function getTeamHistory(teamKey: string): Promise<RosterSnapshot[]> {
 
 export function syncTeam(teamKey: string): Promise<{ ok: boolean }> {
   return api.post(`/api/teams/${teamKey}/sync`).then((r) => r.data);
+}
+
+export function syncAllTeams(): Promise<unknown> {
+  return api.post("/api/teams/sync-all").then((r) => r.data);
 }
 
 export function getPlayer(playerKey: string): Promise<Player> {

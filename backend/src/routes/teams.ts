@@ -16,6 +16,57 @@ app.get("/", async (c) => {
   return c.json(teams);
 });
 
+app.post("/sync-all", async (c) => {
+  const userId = c.get("userId");
+  const user = await db.user.findUnique({ where: { id: userId } });
+  if (!user) return c.json({ error: "User not found" }, 404);
+
+  type TeamEntry = {
+    team: [{ team_key: string; name: string; league_key: string }];
+  };
+  type GameEntry = {
+    game: [unknown, { teams: { [key: string]: TeamEntry } }];
+  };
+  type YahooTeamsResponse = {
+    fantasy_content: {
+      users: {
+        "0": { user: [unknown, { games: { [key: string]: GameEntry } }] };
+      };
+    };
+  };
+
+  const data = (await fetchYahooAPI(
+    user.accessToken,
+    "/users;use_login=1/games;game_codes=nba/teams"
+  )) as YahooTeamsResponse;
+
+  const gamesObj = data.fantasy_content.users["0"].user[1].games;
+  const upserted = [];
+
+  for (const gameKey of Object.keys(gamesObj).filter((k) => k !== "count")) {
+    const teamsObj = gamesObj[gameKey].game[1].teams;
+    for (const teamKey of Object.keys(teamsObj).filter((k) => k !== "count")) {
+      const rawTeam = teamsObj[teamKey].team[0];
+      const t = Array.isArray(rawTeam)
+        ? (Object.assign({}, ...rawTeam.filter((x: unknown) => x && typeof x === "object" && !Array.isArray(x))) as { team_key: string; name: string })
+        : rawTeam as { team_key: string; name: string };
+      const leagueKey = t.team_key.replace(/\.t\.\d+$/, "");
+      const league = await db.league.findUnique({
+        where: { leagueKey },
+      });
+      if (!league) continue;
+      const team = await db.team.upsert({
+        where: { teamKey: t.team_key },
+        update: { name: t.name },
+        create: { teamKey: t.team_key, name: t.name, leagueId: league.id },
+      });
+      upserted.push(team);
+    }
+  }
+
+  return c.json(upserted);
+});
+
 app.get("/:teamKey", async (c) => {
   const { teamKey } = c.req.param();
   const team = await db.team.findUnique({
@@ -76,7 +127,12 @@ app.post("/:teamKey/sync", async (c) => {
   )) as YahooTeamResponse;
 
   const [teamInfo, rosterWrapper] = data.fantasy_content.team;
-  const { name: teamName, league_key: leagueKey } = teamInfo[0];
+  const teamInfoFlat = Object.assign(
+    {},
+    ...teamInfo.filter((x: unknown) => x && typeof x === "object" && !Array.isArray(x))
+  ) as { name: string };
+  const teamName = teamInfoFlat.name;
+  const leagueKey = teamKey.replace(/\.t\.\d+$/, "");
 
   const league = await db.league.findUnique({ where: { leagueKey } });
   if (!league) return c.json({ error: "League not found" }, 404);
@@ -93,11 +149,15 @@ app.post("/:teamKey/sync", async (c) => {
   });
 
   for (const pKey of Object.keys(playersObj).filter((k) => k !== "count")) {
-    const p = playersObj[pKey].player[0];
+    const rawPlayer = playersObj[pKey].player[0];
+    const p = Array.isArray(rawPlayer)
+      ? (Object.assign({}, ...rawPlayer.filter((x: unknown) => x && typeof x === "object" && !Array.isArray(x))) as { player_key: string; name: { full: string } | string; display_position: string; editorial_team_abbr: string; status?: string; image_url?: string })
+      : rawPlayer;
+    const playerName = typeof p.name === "object" ? p.name.full : p.name;
     const player = await db.player.upsert({
       where: { playerKey: p.player_key },
       update: {
-        name: p.full_name,
+        name: playerName,
         position: p.display_position,
         nbaTeam: p.editorial_team_abbr,
         injuryStatus: p.status ?? null,
@@ -105,7 +165,7 @@ app.post("/:teamKey/sync", async (c) => {
       },
       create: {
         playerKey: p.player_key,
-        name: p.full_name,
+        name: playerName,
         position: p.display_position,
         nbaTeam: p.editorial_team_abbr,
         injuryStatus: p.status ?? null,

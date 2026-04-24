@@ -49,6 +49,13 @@ export default tseslint.config(
     },
   },
 
+  // require curly braces for all if statements
+  {
+    rules: {
+      curly: ["error", "all"],
+    },
+  },
+
   // disable rules that conflict with prettier (always last)
   prettier
 );

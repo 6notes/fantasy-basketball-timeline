@@ -1,29 +1,22 @@
 import { Hono } from "hono";
-import {
-  generateCodeVerifier,
-  generateState,
-  OAuth2RequestError,
-} from "arctic";
+import { generateState, OAuth2RequestError } from "arctic";
 import { yahoo } from "../lib/yahoo.js";
 import { db } from "../lib/db.js";
 
 const app = new Hono();
 
 app.get("/login", async (c) => {
+  // Creates CSRF token
   const state = generateState();
-  const codeVerifier = generateCodeVerifier();
-  const url = yahoo.createAuthorizationURL(state, codeVerifier, [
-    "fspt-r",
-    "fspt-w",
-  ]);
+  const authUrl = yahoo.createAuthorizationURL(state, ["fspt-r"]);
 
-  return c.json({ url: url.toString(), state, codeVerifier });
+  return c.json({ url: authUrl.toString(), state });
 });
 
 app.get("/callback", async (c) => {
-  const { code, state, stored_state, code_verifier } = c.req.query();
+  const { code, state, stored_state } = c.req.query();
 
-  if (!code || !state || !stored_state || !code_verifier) {
+  if (!code || !state || !stored_state) {
     return c.json({ error: "Missing parameters" }, 400);
   }
 
@@ -32,7 +25,7 @@ app.get("/callback", async (c) => {
   }
 
   try {
-    const tokens = await yahoo.validateAuthorizationCode(code, code_verifier);
+    const tokens = await yahoo.validateAuthorizationCode(code);
 
     const accessToken = tokens.accessToken();
     const refreshToken = tokens.refreshToken();
@@ -45,8 +38,7 @@ app.get("/callback", async (c) => {
     const profile = (await profileRes.json()) as {
       fantasy_content: { users: { "0": { user: [{ guid: string }] } } };
     };
-    const yahooUserId =
-      profile.fantasy_content.users["0"].user[0].guid ?? "unknown";
+    const yahooUserId = profile.fantasy_content.users["0"].user[0].guid ?? "unknown";
 
     const user = await db.user.upsert({
       where: { yahooUserId },

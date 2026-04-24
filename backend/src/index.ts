@@ -10,10 +10,14 @@ import playerRoutes from "./routes/players.js";
 const app = new Hono();
 
 app.use("*", logger());
+const frontendOrigin = process.env.REDIRECT_URI
+  ? new URL(process.env.REDIRECT_URI).origin
+  : "http://localhost:5173";
+
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:5173"],
+    origin: [frontendOrigin, "http://localhost:5173"],
     allowHeaders: ["x-user-id", "Content-Type"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
@@ -28,4 +32,5 @@ app.get("/health", (c) => c.json({ status: "ok" }));
 
 serve({ fetch: app.fetch, port: 3000 }, () => {
   console.log("Backend running on http://localhost:3000");
+  console.log(`Frontend origin: ${frontendOrigin} — open this URL to log in`);
 });

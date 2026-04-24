@@ -16,7 +16,13 @@ export function TeamPage() {
   const sync = useSyncTeam(teamKey!);
 
   if (isLoading) return <Skeleton h="400px" />;
-  if (!team) return <Text>Team not found.</Text>;
+  if (!team)
+    return (
+      <Stack gap={2}>
+        <Text>Team not found.</Text>
+        <Link to="/login">Login with Yahoo to sync your teams</Link>
+      </Stack>
+    );
 
   const latestSnapshot = team.rosterSnapshots?.[0];
 
